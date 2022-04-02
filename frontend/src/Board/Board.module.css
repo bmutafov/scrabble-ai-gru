@@ -1,0 +1,88 @@
+:root {
+  --board-gap: 5px;
+  --cell-size: 50px;
+  --hover-color: rgba(235, 255, 123, 0.2);
+}
+
+.board {
+  display: flex;
+  flex-direction: column;
+  gap: var(--board-gap);
+}
+
+.row {
+  display: flex;
+  gap: var(--board-gap);
+}
+
+.cell {
+  width: var(--cell-size);
+  height: var(--cell-size);
+  border: 1px solid rgb(216, 216, 216);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 5px;
+}
+
+.cell.borderless {
+  border-color: transparent;
+}
+
+.cell input {
+  text-align: center;
+  background: transparent;
+}
+
+.cell.lockedLetter {
+  background: rgb(199, 199, 255);
+  border: 1px solid rgb(120, 120, 255);
+  font-weight: bold;
+  text-transform: uppercase;
+}
+
+.cell.suggestedLetter {
+  border: 1px solid rgb(255, 158, 120);
+  font-size: 8pt;
+  align-items: flex-start;
+  justify-content: flex-start;
+}
+
+.cell.placedLetter {
+  background: rgb(228, 243, 225);
+  border: 1px solid rgb(188, 224, 193);
+  font-weight: bold;
+  text-transform: uppercase;
+}
+
+.cell.impossiblePlace {
+  background: rgb(255, 199, 199);
+  border: 1px solid rgb(255, 120, 120);
+  font-weight: bold;
+  text-transform: uppercase;
+}
+
+.indexCell {
+  width: var(--cell-size);
+  height: var(--cell-size);
+  border: 1px solid white;
+  color: rgb(154, 167, 192);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.paper {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.handContainer {
+  display: flex;
+  gap: 15px;
+}
+
+.row:hover {
+  background: var(--hover-color);
+}
