@@ -16,6 +16,8 @@ const regex = new RegExp(prefixes.map((prefix) => `\\${prefix}`).join("|"));
 
 const Cell: React.FC<CellProps> = ({ content, position, isIndex = false }) => {
   const boardContext = useBoard();
+  const ref = useRef<HTMLInputElement>(null);
+  const prevValue = useRef(content);
 
   const cellValue = content.replace(regex, "");
 
@@ -33,6 +35,22 @@ const Cell: React.FC<CellProps> = ({ content, position, isIndex = false }) => {
     const value = event.currentTarget.value.toLowerCase();
     const [r, c] = position;
     boardContext.editBoard(r, c, value);
+    ref.current?.blur();
+  };
+
+  const clearValue = () => {
+    if (!ref.current) return;
+
+    prevValue.current = ref.current.value;
+    ref.current.value = "";
+  };
+
+  const restoreValue = () => {
+    if (!ref.current || !prevValue) return;
+
+    if (!ref.current.value && prevValue.current) {
+      ref.current.value = prevValue.current;
+    }
   };
 
   if (position[0] === -1 && position[1] === -1) return <div className={cellClass}>\</div>;
@@ -43,9 +61,28 @@ const Cell: React.FC<CellProps> = ({ content, position, isIndex = false }) => {
 
   return (
     <Input
+      ref={ref}
       className={cellClass}
-      sx={{ width: "50px", textAlign: "center" }}
+      styles={{
+        input: {
+          width: "50px",
+          textAlign: "center",
+          caretColor: "transparent",
+          transition: "0.2s",
+          "&:focus": {
+            borderWidth: "2px",
+            boxShadow: "0px 5px 10px rgba(0, 0, 0, 0.2)",
+          },
+          "&:hover:not(:focus)": {
+            borderColor: "#888",
+            boxShadow: "0px 2px 10px rgba(0, 0, 0, 0.2)",
+          },
+        },
+      }}
+      // sx={{ width: "50px", textAlign: "center" }}
       size="lg"
+      onFocus={clearValue}
+      onBlur={restoreValue}
       onChange={onEdit}
       value={cellValue}
       disabled={isIndex}

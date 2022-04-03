@@ -60,7 +60,7 @@ const start = async () => {
   try {
     readDictionary(trie);
     memoryUsage();
-    await server.listen(5100);
+    await server.listen(process.env.PORT || 5100);
   } catch (err) {
     server.log.error(err);
     process.exit(1);

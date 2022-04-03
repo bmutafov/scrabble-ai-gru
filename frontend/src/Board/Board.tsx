@@ -234,7 +234,7 @@ const Board: React.FC = () => {
                   uppercase
                   onClick={solve2}
                   loading={isLoading}
-                  disabled={board.every((row) => row.every((cell) => !cell))}
+                  disabled={board.every((row) => row.every((cell) => !cell)) || isEdit}
                   styles={{
                     root: {
                       transition: "box-shadow 0.5s",

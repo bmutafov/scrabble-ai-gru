@@ -41,6 +41,12 @@ const HandLetter: React.FC<HandLetterProps> = ({ letter, index }) => {
         input: {
           width: "60px",
           textAlign: "center",
+          caretColor: "transparent",
+          transition: "0.2s",
+          "&:focus": {
+            borderWidth: "2px",
+            boxShadow: "0px 5px 10px rgba(0, 0, 0, 0.2)",
+          },
         },
       }}
       size="xl"
