@@ -1,11 +1,13 @@
 import axios from "axios";
 
-const BASE_URL = "http://localhost:5100";
+const getBaseUrl = () => {
+  return process.env.REACT_APP_BASE_URL || "";
+};
 
 export class AxiosCalls {
   static async startsWith(word: string, depth?: number): Promise<string[]> {
     const response = await axios.get<string[]>(
-      encodeURI(BASE_URL + "/startsWith?prefix=" + word + (depth ? "&depth=" + depth : ""))
+      encodeURI(getBaseUrl() + "/startsWith?prefix=" + word + (depth ? "&depth=" + depth : ""))
     );
     const { data } = response;
     return data;
@@ -13,21 +15,23 @@ export class AxiosCalls {
 
   static async endsWith(word: string, depth?: number): Promise<string[]> {
     const response = await axios.get<string[]>(
-      encodeURI(BASE_URL + "/endsWith?suffix=" + word + (depth ? "&depth=" + depth : ""))
+      encodeURI(getBaseUrl() + "/endsWith?suffix=" + word + (depth ? "&depth=" + depth : ""))
     );
     const { data } = response;
     return data;
   }
 
   static async between(prefix: string, suffix: string): Promise<string[]> {
-    const response = await axios.get<string[]>(encodeURI(BASE_URL + "/between?prefix=" + prefix + "&suffix=" + suffix));
+    const response = await axios.get<string[]>(
+      encodeURI(getBaseUrl() + "/between?prefix=" + prefix + "&suffix=" + suffix)
+    );
     const { data } = response;
     return data;
   }
 
   static async byPattern(word: string, b: string[], a: string[], h: string[]): Promise<string[]> {
     try {
-      const response = await axios.post<string[]>(encodeURI(BASE_URL + "/pattern"), {
+      const response = await axios.post<string[]>(encodeURI(getBaseUrl() + "/pattern"), {
         s: word,
         b,
         a,
@@ -43,7 +47,7 @@ export class AxiosCalls {
 
   static async solve(row: string[], hand: string[]): Promise<{ word: string; index: number }[]> {
     try {
-      const response = await axios.post<{ word: string; index: number }[]>(encodeURI(BASE_URL + "/solve"), {
+      const response = await axios.post<{ word: string; index: number }[]>(encodeURI(getBaseUrl() + "/solve"), {
         row,
         hand,
       });

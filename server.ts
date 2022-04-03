@@ -1,9 +1,10 @@
 import { memoryUsage } from "./utils/memory-usage";
 import { TrieSearch } from "./trie/trie-search";
-import { readDictionary } from "./utils/read-dictionary";
+import { isProd, readDictionary } from "./utils/read-dictionary";
 import fastify from "fastify";
 import { Trie } from "./trie/trie";
 import { TrieSolve } from "./trie/trie-solve";
+import path from "path";
 
 type Prefix = { prefix: string };
 type Suffix = { suffix: string };
@@ -13,7 +14,13 @@ type Solve = { row: string[]; hand: string[] };
 
 const server = fastify({ logger: true });
 
+const frontendPath = isProd()
+  ? path.join(__dirname, "..", "frontend", "build")
+  : path.join(__dirname, "frontend", "build");
 server.register(require("fastify-cors"));
+server.register(require("fastify-static"), {
+  root: frontendPath,
+});
 
 const trie = new Trie();
 const trieSearch = new TrieSearch(trie);

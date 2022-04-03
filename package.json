@@ -4,6 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "start": "cross-env NODE_ENV=production node build/server",
+    "build": "tsc && cd frontend && npm run build",
     "test": "mocha -r ts-node/register tests/**/*.test.ts"
   },
   "keywords": [],
@@ -24,8 +26,10 @@
     "2d-array-rotation": "^2.1.1",
     "axios": "^0.26.1",
     "chalk": "^4.1.2",
+    "cross-env": "^7.0.3",
     "fastify": "^3.27.4",
     "fastify-cors": "^6.0.3",
+    "fastify-static": "^4.6.1",
     "ora": "^5.4.1"
   }
 }
