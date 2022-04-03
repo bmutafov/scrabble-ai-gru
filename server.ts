@@ -1,3 +1,4 @@
+import { memoryUsage } from "./utils/memory-usage";
 import { TrieSearch } from "./trie/trie-search";
 import { readDictionary } from "./utils/read-dictionary";
 import fastify from "fastify";
@@ -51,6 +52,7 @@ server.post("/solve", async (request, reply) => {
 const start = async () => {
   try {
     readDictionary(trie);
+    memoryUsage();
     await server.listen(5100);
   } catch (err) {
     server.log.error(err);

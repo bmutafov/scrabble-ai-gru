@@ -7,7 +7,9 @@ export const readDictionary = (trie: Trie) => {
   const words = fs.readFileSync(join(__dirname, "..", "dictionary.txt")).toString().split("\r\n");
   console.log("adding words...");
   for (const word of words) {
-    trie.add(word, true);
+    if (word.length > 1 && word.length < 10) {
+      trie.add(word, true);
+    }
   }
   console.log("✅ dictionary imported");
 };
