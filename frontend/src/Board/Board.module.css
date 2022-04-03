@@ -8,6 +8,7 @@
   display: flex;
   flex-direction: column;
   gap: var(--board-gap);
+  position: relative;
 }
 
 .row {
@@ -82,9 +83,56 @@
 
 .handContainer {
   display: flex;
-  gap: 15px;
+  justify-content: center;
+  gap: 30px;
+  align-items: center;
+}
+
+.handLetters {
+  display: flex;
+  gap: 10px;
 }
 
 .row:hover {
   background: var(--hover-color);
+}
+
+.legend {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin: 20px 0;
+}
+
+.legendItem {
+  display: flex;
+  gap: 5px;
+  align-items: center;
+}
+
+.legendLocked {
+  background: rgb(199, 199, 255);
+  border: 1px solid rgb(120, 120, 255);
+  width: 10px;
+  height: 10px;
+}
+
+.legendSuggest {
+  border: 1px solid rgb(255, 158, 120);
+  width: 10px;
+  height: 10px;
+}
+
+.legendImpossible {
+  background: rgb(255, 199, 199);
+  border: 1px solid rgb(255, 120, 120);
+  width: 10px;
+  height: 10px;
+}
+
+.legendPlaced {
+  background: rgb(228, 243, 225);
+  border: 1px solid rgb(188, 224, 193);
+  width: 10px;
+  height: 10px;
 }

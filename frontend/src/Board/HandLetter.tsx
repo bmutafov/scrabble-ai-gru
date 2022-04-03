@@ -1,6 +1,5 @@
 import { Input } from "@mantine/core";
-import { useInputState } from "@mantine/hooks";
-import React from "react";
+import React, { useRef } from "react";
 import { useBoard } from "../contexts/board-context";
 
 interface HandLetterProps {
@@ -10,14 +9,42 @@ interface HandLetterProps {
 
 const HandLetter: React.FC<HandLetterProps> = ({ letter, index }) => {
   const boardContext = useBoard();
+  const ref = useRef<HTMLInputElement>(null);
+  const prevValue = useRef(letter);
+
+  const clearValue = () => {
+    if (!ref.current) return;
+
+    prevValue.current = ref.current.value;
+    ref.current.value = "";
+  };
+
+  const restoreValue = () => {
+    if (!ref.current || !prevValue) return;
+
+    if (!ref.current.value && prevValue.current) {
+      ref.current.value = prevValue.current;
+    }
+  };
+
+  const handleChange = (e: React.SyntheticEvent<HTMLInputElement>) => {
+    boardContext.editHand(index, e.currentTarget.value);
+    ref.current?.blur();
+  };
 
   return (
     <Input
-      sx={{ width: "55px", "& input": { textAlign: "center" } }}
-      variant="filled"
-      placeholder="X"
+      onFocus={clearValue}
+      onBlur={restoreValue}
+      ref={ref}
+      styles={{
+        input: {
+          width: "60px",
+          textAlign: "center",
+        },
+      }}
       size="xl"
-      onChange={(e: React.SyntheticEvent<HTMLInputElement>) => boardContext.editHand(index, e.currentTarget.value)}
+      onChange={handleChange}
       value={letter}
     />
   );

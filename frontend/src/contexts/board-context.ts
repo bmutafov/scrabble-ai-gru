@@ -1,9 +1,9 @@
 import React, { useContext } from "react";
-import { Hand, IBoard } from "../Board/Board";
+import { IHand, IBoard } from "../Board/Board";
 
 interface IBoardContext {
   board: IBoard;
-  hand: Hand;
+  hand: IHand;
   isEdit: boolean;
   editBoard: (r: number, c: number, value: string) => void;
   editHand: (index: number, letter: string) => void;

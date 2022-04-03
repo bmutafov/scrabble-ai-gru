@@ -1,19 +1,26 @@
 import React, { useRef, useState } from "react";
 import Row from "./Row";
 import style from "./Board.module.css";
-import { Alert, Box, Button, Header, Paper, Title } from "@mantine/core";
-import Hand from "./Hand";
+import { ActionIcon, Alert, Box, Button, LoadingOverlay, Paper, Title, Tooltip } from "@mantine/core";
+import Hand, { getRandLetter } from "./Hand";
 import { BoardContext } from "../contexts/board-context";
 import { AnchorFinder } from "../solver/solver";
 import { AxiosCalls } from "../solver/axios-calls";
-import { AlertCircle } from "tabler-icons-react";
+import { AlertCircle, Dice, Lock, Pencil, PlayerTrackNext, Rotate360, Trash, X } from "tabler-icons-react";
 import { BoardController } from "../solver/board-controller";
+import Legend from "./Legend";
 
-function transpose<T>(m: T[][]): T[][] {
-  return m[0].map((x, i) => m.map((x) => x[i]));
+function toSolverFormat(board: IBoard, i: number): string[] {
+  return board.map((row) => (row[i] === "" ? "*" : row[i]));
 }
 
-export type Hand = string[];
+function findBestWord(words: Move[]) {
+  const [longest] = words.sort((a, b) => b.word.length - a.word.length);
+  return longest;
+}
+
+export type Move = { word: string; row: number; col: number; direction: "bottom" | "right" };
+export type IHand = string[];
 export type IBoard = string[][];
 const INITIAL_BOARD: IBoard = [
   ["", "", "", "", "", "", "", "", "", "", "", "", "", "", ""],
@@ -37,17 +44,27 @@ const INDEX_ROW = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11",
 // const boardController = new BoardController();
 
 const Board: React.FC = () => {
-  const { current: boardController } = useRef(new BoardController());
   const [board, setBoard] = useState<IBoard>(INITIAL_BOARD);
-  const [hand, setHand] = useState<Hand>(["а", "б", "в", "г", "д", "е", "ж"]);
+  const [hand, setHand] = useState<IHand>(["а", "б", "в", "г", "д", "е", "ж"]);
+  const { current: boardController } = useRef(new BoardController(setBoard));
 
   const [isEdit, setIsEdit] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
+  console.count("Board rerenders: ");
+
   const editBoard = (r: number, c: number, value: string) => {
     const newState = boardController.setValueAtPosition(r, c, value).getState();
     setBoard(newState);
+  };
+
+  const reset = () => {
+    boardController.reset().setState();
+  };
+
+  const transposeBoard = () => {
+    boardController.transpose().setState();
   };
 
   const refreshGuesses = () => {
@@ -55,8 +72,7 @@ const Board: React.FC = () => {
     setError(null);
     setIsLoading(false);
 
-    const newState = boardController.clearNonWords().getState();
-    setBoard(newState);
+    boardController.clearNonWords().setState();
   };
 
   const editHand = (index: number, letter: string): void => {
@@ -68,84 +84,91 @@ const Board: React.FC = () => {
     );
   };
 
+  const randomizeHand = () => {
+    hand.forEach((l, i) => {
+      editHand(i, getRandLetter());
+    });
+  };
+
   const switchEdit = () => {
     setIsEdit((prev) => !prev);
   };
 
   const makeLastMovePermanent = (): IBoard => {
-    console.log(boardController.getState());
-    const newBoard = boardController.makeLastMovePermanent().getState();
-    console.log("🚩 ~ newBoard", newBoard);
-    setBoard(newBoard);
-    return newBoard;
+    boardController.makeLastMovePermanent().clearNonWords().setState();
+
+    return boardController.getState();
   };
 
-  const solve = async () => {
-    const newBoard = makeLastMovePermanent();
-    setIsLoading(true);
-    setError(null);
+  const solveForDimension = async (dimension: "normal" | "transposed" = "normal") => {
+    let newBoard = makeLastMovePermanent();
+
+    if (dimension === "transposed") {
+      newBoard = boardController.getTransposedState();
+    }
+
     const anchorFinder = new AnchorFinder(newBoard);
-    const words: { word: string; row: number; col: number; direction: "bottom" | "right" }[] = [];
+    const words: Move[] = [];
 
     anchorFinder.findAnchors();
     anchorFinder.findWordsNextToAnchor();
     await anchorFinder.addPossibleLettersOnBoard();
     for (let i = 0; i < 14; i++) {
-      const column = anchorFinder.getBoard().map((row) => (row[i] === "" ? "*" : row[i]));
-      const wordsForCol = await AxiosCalls.solve(column, hand);
-      wordsForCol.forEach((w) => words.push({ word: w.word, row: w.index, col: i, direction: "bottom" }));
+      const column = toSolverFormat(anchorFinder.getBoard(), i);
+
+      const possibleWords = await AxiosCalls.solve(column, hand);
+      possibleWords.forEach((w) => {
+        if (dimension === "normal") {
+          words.push({ word: w.word, row: w.index, col: i, direction: "bottom" });
+        } else {
+          words.push({ word: w.word, row: i, col: w.index, direction: "right" });
+        }
+      });
     }
 
-    const transposedBoard = transpose(newBoard);
-    const anchorFinderRow = new AnchorFinder(transposedBoard);
-    const wordsRow: { word: string; row: number; col: number; direction: "bottom" | "right" }[] = [];
+    return [words, anchorFinder] as [Move[], AnchorFinder];
+  };
 
-    anchorFinderRow.findAnchors();
-    anchorFinderRow.findWordsNextToAnchor();
-    await anchorFinderRow.addPossibleLettersOnBoard();
-    for (let i = 0; i < 14; i++) {
-      const column = anchorFinderRow.getBoard().map((row) => (row[i] === "" ? "*" : row[i]));
-      const wordsForCol = await AxiosCalls.solve(column, hand);
-      wordsForCol.forEach((w) => wordsRow.push({ word: w.word, row: i, col: w.index, direction: "right" }));
-    }
+  const solve2 = async () => {
+    setIsLoading(true);
+    const [wordsVertical, anchorFinderV] = await solveForDimension("normal");
+    const [wordsHorizontal, anchorFinederH] = await solveForDimension("transposed");
 
-    console.log({ words, wordsRow });
-    const [longest] = [...words, ...wordsRow].sort((a, b) => b.word.length - a.word.length);
-
-    console.log("🚩 ~ longest", longest);
-
-    // setBoard(anchorFinder.getBoard());
-    setIsLoading(false);
-
-    // TODO: Uncomment code
-    // -----------------------------------------------------------------
-    if (!longest) {
+    const bestMove = findBestWord([...wordsVertical, ...wordsHorizontal]);
+    if (!bestMove) {
       setIsLoading(false);
       setError("No words can be played with this board and hand.");
-    } else {
-      if (longest.direction === "bottom") {
-        anchorFinder.playWord(longest.word, longest.row, longest.col);
-        setBoard(anchorFinder.getBoard());
-        boardController.setState(anchorFinder.getBoard());
-        setIsLoading(false);
-      } else {
-        anchorFinderRow.playWord(longest.word, longest.col, longest.row);
-        const retransposed = transpose(anchorFinderRow.getBoard());
-        setBoard(retransposed);
-        boardController.setState(retransposed);
-        setIsLoading(false);
-      }
+      return;
     }
-    // -----------------------------------------------------------------
+
+    if (bestMove.direction === "bottom") {
+      boardController
+        .inheritAnchors(anchorFinderV.getBoard())
+        .transpose()
+        .inheritAnchors(anchorFinederH.getBoard())
+        .transpose()
+        .playWord(bestMove.word, bestMove.row, bestMove.col)
+        .setState();
+    } else {
+      boardController
+        .inheritAnchors(anchorFinderV.getBoard())
+        .transpose()
+        .inheritAnchors(anchorFinederH.getBoard())
+        .playWord(bestMove.word, bestMove.col, bestMove.row)
+        .transpose()
+        .setState();
+    }
+    setIsLoading(false);
   };
 
   return (
     <BoardContext.Provider value={{ board, isEdit, editBoard, editHand, hand }}>
       <div>
-        <Title order={2} my={20}>
+        <Title order={1} my={20} align="center" sx={{ fontWeight: "lighter" }}>
           Board
         </Title>
-        <Box mb={40} className={style.board}>
+        <Box className={style.board}>
+          <LoadingOverlay visible={isLoading} />
           <Row row={INDEX_ROW} isIndex index={-1} />
           {board.map((row, i) => (
             <Row row={row} key={i} index={i} isIndex={false} />
@@ -157,46 +180,80 @@ const Board: React.FC = () => {
             {error}
           </Alert>
         )}
-
+        <Title order={2} my={20} align="center" sx={{ fontWeight: "lighter" }}>
+          Hand
+        </Title>
+        <Hand letters={hand} />
         <Paper mt={20} shadow="lg" radius="md" p="xl" withBorder>
-          <Title order={2} mb={20}>
-            Hand
-          </Title>
           <div className={style.paper}>
-            <Hand letters={hand} />
-            <Box sx={{ display: "flex", gap: "10px" }}>
-              <Button
-                variant="default"
-                color="gray"
-                radius="md"
-                size="md"
-                uppercase
-                onClick={() => setBoard((prev) => transpose(prev))}
-              >
-                Transpose
-              </Button>
-              <Button variant="default" color="gray" radius="md" size="md" uppercase onClick={refreshGuesses}>
-                Clear
-              </Button>
-              <Button
-                variant={isEdit ? "outline" : "light"}
-                color="blue"
-                radius="md"
-                size="md"
-                uppercase
-                onClick={switchEdit}
-              >
-                Edit
-              </Button>
-              <Button color="pink" radius="md" size="md" uppercase onClick={makeLastMovePermanent} loading={isLoading}>
-                lock
-              </Button>
-              <Button color="pink" radius="md" size="md" uppercase onClick={solve} loading={isLoading}>
-                AI Next
-              </Button>
+            <Box sx={{ display: "flex", gap: "10px", justifyContent: "space-between", width: "100%" }}>
+              <Box sx={{ display: "flex", gap: "10px" }}>
+                <Tooltip withArrow label="Randomize letters in hand">
+                  <ActionIcon color="gray" size="xl" variant="light" onClick={randomizeHand}>
+                    <Dice size={15} />
+                  </ActionIcon>
+                </Tooltip>
+
+                <Tooltip withArrow label="Transpose the board">
+                  <ActionIcon color="gray" size="xl" variant="light" onClick={transposeBoard}>
+                    <Rotate360 size={15} />
+                  </ActionIcon>
+                </Tooltip>
+
+                <Tooltip withArrow label="Delete everything on board">
+                  <ActionIcon color="gray" size="xl" variant="light" onClick={reset}>
+                    <Trash size={15} />
+                  </ActionIcon>
+                </Tooltip>
+
+                <Tooltip withArrow label="Delete AI guesses">
+                  <ActionIcon color="gray" size="xl" variant="light" onClick={refreshGuesses}>
+                    <X size={15} />
+                  </ActionIcon>
+                </Tooltip>
+
+                <Tooltip withArrow label="Edit board">
+                  <ActionIcon color={!isEdit ? "gray" : "blue"} size="xl" variant="light" onClick={switchEdit}>
+                    <Pencil size={15} />
+                  </ActionIcon>
+                </Tooltip>
+
+                <Tooltip withArrow label="Lock the last AI move in place">
+                  <ActionIcon title="test" size="xl" variant="light" onClick={makeLastMovePermanent}>
+                    <Lock size={15} />
+                  </ActionIcon>
+                </Tooltip>
+              </Box>
+              <Box>
+                <Button
+                  leftIcon={<PlayerTrackNext size={15} />}
+                  variant="gradient"
+                  gradient={{ from: "orange", to: "red", deg: 140 }}
+                  radius="md"
+                  size="md"
+                  uppercase
+                  onClick={solve2}
+                  loading={isLoading}
+                  disabled={board.every((row) => row.every((cell) => !cell))}
+                  styles={{
+                    root: {
+                      transition: "box-shadow 0.5s",
+                      "&:not(:disabled)": {
+                        boxShadow: "0px 5px 10px rgba(0, 0, 0, 0.2)",
+                      },
+                      "&:disabled": {
+                        background: "#cfcfcf",
+                      },
+                    },
+                  }}
+                >
+                  Move
+                </Button>
+              </Box>
             </Box>
           </div>
         </Paper>
+        <Legend />
       </div>
     </BoardContext.Provider>
   );

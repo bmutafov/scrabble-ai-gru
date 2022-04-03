@@ -57,7 +57,6 @@ export class AnchorFinder {
           // and now it is left as well, so we change it to BOTH
           else if (this.board[r][c - 1] === this.ANCHOR_SIGN) {
             const existingAnchorOnPosition = this.anchors.find((a) => a.row === r && a.column === c - 1); //this.anchorPositions.find((a) => a[0] === r && a[1] === c - 1);
-            console.log("🚩 ~ this.anchors", this.anchors);
             if (!existingAnchorOnPosition) {
               throw new Error(`ExistingAnchorOnPosition undefined. Trying to access on ${r} - ${c - 1}`);
             }
@@ -107,7 +106,6 @@ export class AnchorFinder {
         anchor.setWord(word);
       }
     }
-    console.log(this.anchors);
   };
 
   addPossibleLettersOnBoard = async () => {
