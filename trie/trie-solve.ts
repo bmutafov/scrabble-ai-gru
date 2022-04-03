@@ -2,12 +2,14 @@ import { Trie } from "./trie";
 import { TrieSearch } from "./trie-search";
 import { TrieUtils } from "./trie-utils";
 
+type WordWithIndex = { word: string; index: number };
+
 export class TrieSolve {
-  static solveForRow(trie: Trie, row: string[], hand: string[]): string[] {
+  static solveForRow(trie: Trie, row: string[], hand: string[]): WordWithIndex[] {
     if (row.length !== 15) throw `Row must include strictly 15 letters!`;
     if (hand.length !== 7) throw `Hand must include strictly 7 letters!`;
 
-    const result: string[] = [];
+    const result: WordWithIndex[] = [];
 
     const startingIndexes = TrieSolve.getStartingPoints(row);
 
@@ -58,19 +60,26 @@ export class TrieSolve {
     }, [] as number[]);
   }
 
-  private static findValidWords(words: string[], coreWord: string, row: string[], hand: string[]): string[] {
+  private static findValidWords(words: string[], coreWord: string, row: string[], hand: string[]): WordWithIndex[] {
     const validWords = words.reduce((validWords, currentWord) => {
-      if (TrieSolve.fitsRow(currentWord, coreWord, row, hand) && currentWord !== coreWord) {
-        validWords.push(currentWord);
+      const { fit, startIndex } = TrieSolve.fitsRow(currentWord, coreWord, row, hand);
+      if (fit && currentWord !== coreWord) {
+        validWords.push({ word: currentWord, index: startIndex! });
       }
 
       return validWords;
-    }, [] as string[]);
+      //TODO: Extract to interface
+    }, [] as WordWithIndex[]);
 
     return validWords;
   }
 
-  private static fitsRow(word: string, coreWord: string, row: string[], hand: string[]): boolean {
+  private static fitsRow(
+    word: string,
+    coreWord: string,
+    row: string[],
+    hand: string[]
+  ): { fit: boolean; startIndex?: number } {
     const rowAsString = row.map((letter) => letter.charAt(0)).join("");
     const coreWordIndexAtRow = rowAsString.includes(coreWord)
       ? rowAsString.indexOf(coreWord)
@@ -86,7 +95,7 @@ export class TrieSolve {
       TrieUtils.isLetter(row[startingIndexAtRow - 1]) ||
       TrieUtils.isLetter(row[startingIndexAtRow + word.length])
     ) {
-      return false;
+      return { fit: false };
     }
 
     for (let i = startingIndexAtRow; i < startingIndexAtRow + word.length; i++) {
@@ -95,26 +104,26 @@ export class TrieSolve {
 
       if (TrieUtils.isLetter(currentLetterOnRow)) {
         if (currentLetterOfWord !== currentLetterOnRow) {
-          return false;
+          return { fit: false };
         }
       } else {
         let indexOfHandLetter = -1;
 
         if (TrieUtils.isAnchor(currentLetterOnRow)) {
           const possibleLetters = TrieUtils.getPossibleLetters(currentLetterOnRow);
-          if (!possibleLetters.includes(currentLetterOfWord)) return false;
+          if (!possibleLetters.includes(currentLetterOfWord)) return { fit: false };
         }
 
         indexOfHandLetter = TrieSolve.getIndexInHand(currentLetterOfWord, handCopy);
         if (indexOfHandLetter >= 0) {
           handCopy.splice(indexOfHandLetter, 1);
         } else {
-          return false;
+          return { fit: false };
         }
       }
     }
 
-    return true;
+    return { fit: true, startIndex: startingIndexAtRow };
   }
 
   /**

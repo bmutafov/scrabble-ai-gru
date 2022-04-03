@@ -10,7 +10,7 @@ const Hand: React.FC<HandProps> = ({ letters }) => {
   return (
     <div className={style.handContainer}>
       {letters.map((letter, i) => (
-        <HandLetter letter={letter} key={`${letter}-${i}`} />
+        <HandLetter letter={letter} index={i} key={`${letter}-${i}`} />
       ))}
     </div>
   );

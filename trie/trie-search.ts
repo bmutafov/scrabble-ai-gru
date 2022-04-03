@@ -57,6 +57,37 @@ export class TrieSearch {
     return Array.from(foundWords);
   }
 
+  between(prefix: string, suffix: string): string[] {
+    const node = this.directPathTo(this.trie.ROOT, "+" + prefix);
+    if (!node) return [];
+    const predicates = this.getPredicates({ between: { prefix, suffix } });
+    const wordsArray: Set<string> = new Set();
+    this.betweenIterator("", reverse(`${prefix}*${suffix}`), this.trie.ROOT, wordsArray);
+    return Array.from(wordsArray);
+  }
+
+  private betweenIterator(path: string, pattern: string, node: Node, wordsArray: Set<string>) {
+    if (pattern === "") {
+      if (node.EOW) {
+        wordsArray.add(GaddagGenerator.normalize(path + node.letter));
+      }
+      return;
+    }
+
+    if (pattern.charAt(0) === "*") {
+      node.forEachChild((childNode) => {
+        this.betweenIterator(path + node.letter, pattern.substring(1), childNode, wordsArray);
+      });
+    } else {
+      const nextNode = node.get(pattern.charAt(0));
+      if (nextNode) {
+        this.betweenIterator(path + node.letter, pattern.substring(1), nextNode, wordsArray);
+      } else {
+        return;
+      }
+    }
+  }
+
   public directPathTo(node: Node, word: string): Node | null {
     let _node = node;
 
@@ -91,10 +122,12 @@ export class TrieSearch {
   private getPredicates({
     depth,
     checkOnly,
+    between,
     additionalPredicates,
   }: {
     depth?: number;
     checkOnly?: string[];
+    between?: { prefix: string; suffix: string };
     additionalPredicates?: BreakPredicate[];
   }): BreakPredicate[] {
     const predicates: BreakPredicate[] = [];
@@ -104,6 +137,10 @@ export class TrieSearch {
 
     if (checkOnly) {
       predicates.push(BreakPredicates.checkOnlyPredicate(checkOnly));
+    }
+
+    if (between) {
+      predicates.push(BreakPredicates.betweenPredicate(between.prefix, between.suffix));
     }
 
     if (additionalPredicates) {
