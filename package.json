@@ -4,6 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "postinstall": "cd frontend && npm install",
     "start": "cross-env NODE_ENV=production node build/server",
     "build": "tsc && cd frontend && npm run build",
     "test": "mocha -r ts-node/register tests/**/*.test.ts"
