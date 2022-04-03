@@ -45,7 +45,10 @@ export class Node {
     return this.children && Boolean(this.children[letter]);
   }
 
-  get(letter: string): Node {
+  get(letter: string): Node | null {
+    if (!this.children) {
+      return null;
+    }
     return this.children[letter];
   }
 
