@@ -1,0 +1,29 @@
+:root {
+  --cell-size: 40px;
+}
+
+.cell {
+  width: var(--cell-size);
+  height: var(--cell-size);
+  border: 1px solid rgb(216, 216, 216);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 5px;
+}
+
+.wordX3 {
+  color: red;
+}
+
+.letterX3 {
+  color: blue;
+}
+
+.letterX2 {
+  color: lightblue;
+}
+
+.wordX2 {
+  color: pink;
+}

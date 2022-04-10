@@ -1,0 +1,8 @@
+.board {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  position: relative;
+  align-items: center;
+  justify-content: center;
+}

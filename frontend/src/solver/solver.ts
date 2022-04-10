@@ -1,4 +1,4 @@
-import { IBoard } from "./../Board/Board";
+import { Board } from "./../state/game-state";
 import { AxiosCalls } from "./axios-calls";
 
 enum AdjacentTo {
@@ -28,10 +28,10 @@ export class SolverUtil {
 
 export class AnchorFinder {
   public readonly ANCHOR_SIGN = "$";
-  private board: IBoard;
+  private board: Board;
   private anchors: Anchor[] = [];
 
-  constructor(board: IBoard) {
+  constructor(board: Board) {
     this.board = [...board.map((row) => row.slice())];
   }
 

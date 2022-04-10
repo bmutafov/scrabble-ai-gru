@@ -1,0 +1,25 @@
+:root {
+  --avatar-size: 150px;
+}
+
+.column {
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.avatar {
+  width: var(--avatar-size);
+  height: var(--avatar-size);
+  border-radius: 20px;
+  background-color: #fff;
+}
+
+.displayColumn {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+}
