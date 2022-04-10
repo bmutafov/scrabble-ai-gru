@@ -61,7 +61,7 @@ const start = async () => {
     readDictionary(trie);
     memoryUsage();
     console.log("Starting server at port: " + process.env.PORT || 5100);
-    await server.listen(process.env.PORT || 5100);
+    await server.listen(process.env.PORT || 5100, "0.0.0.0");
   } catch (err) {
     server.log.error(err);
     process.exit(1);
