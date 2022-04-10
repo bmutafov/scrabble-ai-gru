@@ -48,7 +48,7 @@ function App() {
     <TileContextProvider onTileMoveToHand={onTileMoveToHand} onTileMoveOnBoard={onTileMoveOnBoard}>
       <Group spacing="lg" position="center" sx={{ height: "100%", alignItems: "center" }}>
         <Box sx={{ width: "340px" }}>
-          <PlayerColumn avatarUrl="https://avatars.dicebear.com/api/bottts/malcolm.svg" name="Malcolm Bot">
+          <PlayerColumn avatarUrl="https://avatars.dicebear.com/api/bottts/malcolm.svg" name="Gru Bot">
             <TileContainer>
               {currentState.allTiles
                 .filter((tile) => tile.controlledPosition || currentState.botHand.includes(tile))
