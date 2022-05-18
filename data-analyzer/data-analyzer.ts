@@ -5,6 +5,7 @@ import fs from "fs/promises";
 import { Hand } from "../frontend/src/state/game-state";
 import { showPossibleMoves } from "./ai";
 import { clone } from "../frontend/src/utils/clone";
+import { Scorer } from "./scorer";
 
 // transpose an array
 function transpose(array: string[][]): string[][] {
@@ -59,12 +60,14 @@ const parseMove = (board: Board, move: Move): Move => {
   return move;
 };
 
-function playMove(board: Board, move: string, location: string, direction: "vertical" | "horizontal"): void {
+function playMove(board: Board, move: string, location: string, direction: "vertical" | "horizontal") {
   const row = location.charCodeAt(0) - "A".charCodeAt(0);
   const col = +location.substring(1);
+  const playedTiles: [number, number][] = [];
   if (direction === "vertical") {
     for (let i = col; i < col + move.length; i++) {
       board[i][row] = move[i - col];
+      playedTiles.push([i, row]);
     }
   }
   if (direction === "horizontal") {
@@ -72,10 +75,13 @@ function playMove(board: Board, move: string, location: string, direction: "vert
 
     for (let i = row; i < row + move.length; i++) {
       transposedBoard[i][col] = move[i - row];
+      playedTiles.push([col, i]);
     }
 
     Object.assign(board, transpose(transposedBoard));
   }
+
+  return playedTiles;
 }
 
 void (async function run() {
@@ -97,10 +103,16 @@ void (async function run() {
       }
       const board = boards.get(gameId)!;
       const keptData = [rack, location, direction, move, points];
-      const possibleMoves = (await showPossibleMoves(board, rack.toLocaleLowerCase().split(""))).map((move) => ({
-        originalWord: move.word,
-        ...parseMove(board, move),
-      }));
+      const possibleMoves = (await showPossibleMoves(board, rack.toLocaleLowerCase().split(""))).map((move) => {
+        const newBoard = clone(board);
+        const placedTiles = playMove(newBoard, move.word, location, direction);
+
+        return {
+          originalWord: move.word,
+          ...parseMove(board, move),
+          score: new Scorer().score(newBoard, placedTiles),
+        };
+      });
       playMove(board, move.toLocaleLowerCase(), location, direction);
       const newData = [...keptData, possibleMoves];
       parsedDataArray.push(newData);
