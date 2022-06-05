@@ -9,14 +9,14 @@ interface CellProps {
   isIndex?: boolean;
 }
 
-const cellBoosts: Record<string, string> = {
+export const cellBoosts: Record<string, string> = {
   "00": "w3",
   "03": "l2",
   "07": "w3",
   "011": "l2",
   "014": "w3",
   "15": "l3",
-  "18": "l3",
+  "19": "l3",
   "11": "w2",
   "113": "w2",
   "22": "w2",
