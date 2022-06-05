@@ -7,7 +7,6 @@ type WordWithIndex = { word: string; index: number };
 export class TrieSolve {
   static solveForRow(trie: Trie, row: string[], hand: string[]): WordWithIndex[] {
     if (row.length !== 15) throw `Row must include strictly 15 letters!`;
-    if (hand.length !== 7) throw `Hand must include strictly 7 letters!`;
 
     const result: WordWithIndex[] = [];
 
