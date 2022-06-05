@@ -29,9 +29,11 @@ export class GameStateController extends ClassState<GameState> {
 
   // Playing state
   private board: Board = clone(INITIAL_BOARD);
+  private backupBoard: Board = clone(INITIAL_BOARD);
   private allTiles: Tile[] = [];
   private playerHand: Hand = [];
   private botHand: Hand = [];
+  private playerMovedTiles: { tile: Tile; row: number; col: number }[] = [];
 
   constructor() {
     super();
@@ -79,6 +81,42 @@ export class GameStateController extends ClassState<GameState> {
       isLoading: this.isLoading,
       allTiles: this.allTiles,
     };
+  }
+
+  backupCurrentBoard(): this {
+    this.backupBoard = clone(this.board);
+    return this;
+  }
+
+  getBackedUpBoard(): Board {
+    return this.backupBoard;
+  }
+
+  addMovedTile(tile: Tile, row: number, col: number): this {
+    this.playerMovedTiles = this.playerMovedTiles.filter((t) => t.tile !== tile);
+    this.playerMovedTiles.push({ tile, row, col });
+    return this;
+  }
+
+  resetMovedTiles(): this {
+    this.playerMovedTiles = [];
+    return this;
+  }
+
+  getMovedTilesData() {
+    const isHorizontal = this.playerMovedTiles.every((t) => t.col === this.playerMovedTiles[0].col);
+    const isVertical = this.playerMovedTiles.every((t) => t.row === this.playerMovedTiles[0].row);
+    if (isHorizontal) {
+      const sorted = this.playerMovedTiles.sort((t1, t2) => t1.col - t2.col);
+      const word = sorted.reduce((acc, curr) => acc + curr.tile.letter, "");
+      return { tiles: sorted, word };
+    } else if (isVertical) {
+      const sorted = this.playerMovedTiles.sort((t1, t2) => t1.row - t2.row);
+      const word = sorted.reduce((acc, curr) => acc + curr.tile.letter, "");
+      return { tiles: sorted, word };
+    } else {
+      throw new Error("Invalid move. All letters must be on same row/column");
+    }
   }
 
   setLoading(value: boolean): this {

@@ -2,7 +2,9 @@ import { motion, useAnimation } from "framer-motion";
 import { ControlsAnimationDefinition } from "framer-motion/types/animation/types";
 import React, { useEffect, useRef } from "react";
 import { useTileContext } from "../contexts/tile-context";
+import { LETTER_SCORES } from "../hooks/useAi/useAi";
 import { Tile } from "../state/game-state";
+import styles from './Tile.module.css';
 
 interface TileProps {
   tile: Tile;
@@ -119,7 +121,7 @@ const TileComponent: React.FC<TileProps> = ({ tile, index, controlled = false, c
         controls.start(animationDefinition);
       }}
     >
-      {(!controlled || controlledPosition) && tile.letter}
+      {(!controlled || controlledPosition) && <div className={styles.letter}>{tile.letter} <div className={styles.points}>{LETTER_SCORES[tile.letter.toUpperCase()]}</div></div>}
       {/* {tile.letter} */}
     </motion.div>
   );
