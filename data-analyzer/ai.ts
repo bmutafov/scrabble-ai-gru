@@ -39,9 +39,10 @@ const solveForDimension = async (dimension: "normal" | "transposed" = "normal", 
     const possibleWords = TrieSolve.solveForRow(trie, column, hand);
     possibleWords.forEach((w) => {
       if (dimension === "normal") {
-        words.push({ word: w.word, row: w.index, col: i, direction: "bottom" });
+        // TODO: Calculate score
+        words.push({ word: w.word, row: w.index, col: i, direction: "bottom", score: 0 });
       } else {
-        words.push({ word: w.word, row: i, col: w.index, direction: "right" });
+        words.push({ word: w.word, row: i, col: w.index, direction: "right", score: 0 });
       }
     });
   }
