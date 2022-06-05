@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const getBaseUrl = () => {
-  return process.env.REACT_APP_BASE_URL || "";
+  return process.env.REACT_APP_BASE_URL || "http://localhost:5100";
 };
 
 export class AxiosCalls {

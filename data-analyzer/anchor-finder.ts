@@ -1,5 +1,6 @@
-import { Board } from "./../state/game-state";
-import { AxiosCalls } from "./axios-calls";
+import { TrieSearch } from "./../trie/trie-search";
+import { Trie } from "./../trie/trie";
+import { Board } from "../frontend/src/state/game-state";
 
 enum AdjacentTo {
   LEFT = -1,
@@ -30,9 +31,11 @@ export class AnchorFinder {
   public readonly ANCHOR_SIGN = "$";
   private board: Board;
   private anchors: Anchor[] = [];
+  private trie: Trie;
 
-  constructor(board: Board) {
+  constructor(board: Board, trie: Trie) {
     this.board = [...board.map((row) => row.slice())];
+    this.trie = trie;
   }
 
   getBoard() {
@@ -123,21 +126,22 @@ export class AnchorFinder {
 
   findPossibleLettersOnAnchors = async (anchor: Anchor): Promise<string[]> => {
     const { word: anchorWord } = anchor;
+    const trieSearch = new TrieSearch(this.trie);
 
     const wordWithoutAnchorSign = anchorWord.replace("$", "");
     let words: string[] = [];
     // if it starts with $ we search all words ending in the word
     if (anchorWord.startsWith(this.ANCHOR_SIGN)) {
-      words = await AxiosCalls.endsWith(wordWithoutAnchorSign, anchorWord.length);
+      words = trieSearch.endsWith(wordWithoutAnchorSign, anchorWord.length);
     }
     // else if it ends with $ we search all words staring with the prefix word
     else if (anchorWord.endsWith(this.ANCHOR_SIGN)) {
-      words = await AxiosCalls.startsWith(wordWithoutAnchorSign, anchorWord.length + 1);
+      words = trieSearch.startsWith(wordWithoutAnchorSign, anchorWord.length + 1);
     }
     // else, it is between two tiles, it means we have to do a word on both sides, so we search between
     else {
       const [prefix, suffix] = anchorWord.split(this.ANCHOR_SIGN);
-      words = await AxiosCalls.between(prefix, suffix);
+      words = trieSearch.between(prefix, suffix);
     }
 
     const indexOfAnchorSign = anchorWord.indexOf(this.ANCHOR_SIGN);

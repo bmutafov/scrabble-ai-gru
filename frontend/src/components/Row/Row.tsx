@@ -1,17 +1,16 @@
 import React from "react";
-import Cell from "./Cell";
-import style from "./Board.module.css";
+import Cell from "../Cell";
+import styles from "./Row.module.css";
 
 interface RowProps {
-  row: string[];
   index: number;
+  row: string[];
   isIndex?: boolean;
 }
 
-const Row: React.FC<RowProps> = ({ row, index, isIndex = false }) => {
+const Row: React.FC<RowProps> = ({ index, row, isIndex = false }) => {
   return (
-    <div className={style.row}>
-      <Cell position={[index, -1]} content={index.toString()} isIndex />
+    <div className={styles.row}>
       {row.map((letter, i) => (
         <Cell position={[index, i]} content={letter} key={`cell-${i}`} isIndex={isIndex} />
       ))}
